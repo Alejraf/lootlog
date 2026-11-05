@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1222">
+<!-- Seguridad: solo permite código y recursos de esta propia página (bloquea scripts inyectados).
+     Si integras anuncios reales (AdSense, etc.) deberás ampliar esta política con sus dominios. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; manifest-src blob:; worker-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>LootLog</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c5cff'/%3E%3Cstop offset='1' stop-color='%2322d3a6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M32 12l16 8v16c0 8-7 13-16 16-9-3-16-8-16-16V20z' fill='%230f1222' opacity='.25'/%3E%3Cpath d='M20 33l8 8 16-18' fill='none' stroke='white' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0f1222; --card: #1a1f38; --card-2: #222849; --text: #e8eaf6; --muted: #8b91b8;
+    --accent: #7c5cff; --accent-2: #22d3a6; --border: #2d3358; --radius: 16px;
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f4fb; --card: #ffffff; --card-2: #eceefa; --text: #1b1f3b; --muted: #6b7099; --border: #dcdff2;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.4; transition: background .25s, color .25s; }
+  body.has-ad { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+
+  header { position: sticky; top: 0; z-index: 10; background: linear-gradient(180deg, var(--bg) 85%, transparent); padding: calc(14px + env(safe-area-inset-top)) 16px 14px; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  .title-row { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 44px; height: 44px; flex: none; }
+  .brand { flex: 1; min-width: 0; }
+  h1 { font-size: 1.3rem; margin: 0; letter-spacing: .3px; line-height: 1.1; }
+  h1 span { color: var(--accent-2); }
+  .subtitle { color: var(--muted); font-size: .75rem; margin-top: 2px; }
+  .icon-btn { height: 40px; min-width: 40px; padding: 0 10px; flex: none; border-radius: 12px; font-size: 1rem; background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-weight: 700; }
+  .stat-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: .85rem; }
+  .stat-row b { font-size: 1rem; }
+  .stat-row .game { color: var(--muted); }
+  .bar { height: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .bar > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; transition: width .4s ease; }
+  .tools { display: flex; gap: 8px; margin-top: 12px; }
+  .tools input[type="search"] { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 12px; padding: 10px 12px; font-size: 16px; outline: none; }
+  .tools input[type="search"]:focus { border-color: var(--accent); }
+  .chip { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 12px; padding: 0 12px; font-size: .8rem; cursor: pointer; white-space: nowrap; }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Contador de orbes */
+  .orbs { display: flex; align-items: center; gap: 10px; margin-top: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 8px 12px; font-size: .8rem; transition: box-shadow .4s, border-color .4s; }
+  .orbs .orb-list { display: flex; gap: 6px; flex: 1; justify-content: center; }
+  .orb { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); background: var(--card-2); transition: all .3s; }
+  .orb.on { background: radial-gradient(circle at 35% 30%, #fff3b0, #ffb300 60%, #e67e00); border-color: #ffb300; box-shadow: 0 0 8px rgba(255,179,0,.7); }
+  .orbs b { white-space: nowrap; }
+  .orbs.full { border-color: #ffb300; box-shadow: 0 0 16px rgba(255,179,0,.55); }
+  .orbs.full .orb { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.18); } }
+
+  main { padding: 4px 16px 60px; max-width: 640px; margin: 0 auto; }
+  .category { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+  .cat-head { width: 100%; display: flex; align-items: center; gap: 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; padding: 14px 16px; cursor: pointer; }
+  .cat-icon { font-size: 1.5rem; }
+  .cat-info { flex: 1; min-width: 0; }
+  .cat-name { font-weight: 700; }
+  .cat-count { color: var(--muted); font-size: .8rem; }
+  .mini-bar { height: 4px; background: var(--card-2); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .mini-bar > span { display: block; height: 100%; background: var(--accent-2); width: 0; transition: width .3s; }
+  .chev { color: var(--muted); transition: transform .25s; font-size: 1.2rem; }
+  .category.open .chev { transform: rotate(90deg); }
+  .category.done .cat-count { color: var(--accent-2); font-weight: 600; }
+  .items { display: none; padding: 0 8px 8px; }
+  .category.open .items { display: block; }
+  .item { display: flex; align-items: center; gap: 12px; padding: 12px 10px; border-radius: 12px; cursor: pointer; user-select: none; min-height: 48px; }
+  .item:active { background: var(--card-2); }
+  .item input { display: none; }
+  .box { width: 24px; height: 24px; flex: none; border-radius: 8px; border: 2px solid var(--border); display: grid; place-items: center; transition: all .2s; color: transparent; font-size: 14px; font-weight: 900; }
+  .item.checked .box { background: var(--accent-2); border-color: var(--accent-2); color: #0f1222; }
+  .label { flex: 1; min-width: 0; transition: color .2s; }
+  .label small { display: block; color: var(--muted); font-size: .75rem; }
+  .item.checked .label { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+  .item.checked .label small { text-decoration: line-through; }
+  .item.hidden { display: none; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; display: none; }
+
+  /* Pistas */
+  .hint-btn { flex: none; width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--border); background: var(--card-2); color: var(--text); font-size: 1rem; cursor: pointer; transition: transform .15s; }
+  .hint-btn:active { transform: scale(.92); }
+  .hint-btn.unlocked { border-color: var(--accent-2); }
+  .label small.hint { display: none; margin-top: 4px; color: var(--accent-2); font-size: .78rem; text-decoration: none; }
+  .item.hint-open .label small.hint { display: block; }
+  .item.checked .label small.hint { text-decoration: none; }
+
+  .support-card { max-width: 640px; margin: 0 auto 40px; padding: 0 16px; display: none; }
+  .support-card a { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); background: var(--card); border: 1px dashed var(--accent); border-radius: var(--radius); padding: 14px 16px; }
+  .support-card small { display: block; color: var(--muted); font-size: .75rem; }
+
+  /* Banner publicitario (simulado) */
+  .ad-banner { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 10px; background: var(--card); border-top: 1px solid var(--border); padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); min-height: 52px; }
+  .ad-tag { flex: none; background: #ffb300; color: #1b1f3b; font-weight: 800; font-size: .65rem; padding: 2px 6px; border-radius: 5px; }
+  .ad-text { flex: 1; min-width: 0; color: var(--muted); font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ad-remove { flex: none; background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 7px 12px; font-size: .72rem; font-weight: 700; cursor: pointer; }
+  body.has-ad .toast { bottom: 80px; }
+
+  /* Hoja de opciones */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 30; }
+  .overlay.show { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 31; background: var(--card); border-top: 1px solid var(--border); border-radius: 22px 22px 0 0; padding: 14px 16px calc(18px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .3s ease; max-width: 640px; margin: 0 auto; max-height: 90vh; overflow-y: auto; }
+  .sheet.show { transform: translateY(0); }
+  .grab { width: 40px; height: 4px; background: var(--border); border-radius: 9px; margin: 0 auto 12px; }
+  .sheet h2 { font-size: 1rem; margin: 0 0 10px; }
+  .opt { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: var(--card-2); border: 0; color: var(--text); font: inherit; border-radius: 14px; padding: 14px; margin-bottom: 8px; cursor: pointer; text-decoration: none; }
+  .opt small { display: block; color: var(--muted); font-size: .75rem; }
+  .opt .oi { font-size: 1.3rem; }
+  .opt.danger { color: #ff6b81; }
+  .opt:active { filter: brightness(.95); }
+  .privacy { color: var(--muted); font-size: .72rem; text-align: center; margin: 10px 4px 0; }
+
+  /* Modales */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 50; }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  .modal { position: fixed; left: 50%; top: 50%; z-index: 51; width: min(92vw, 420px); max-height: 86vh; overflow-y: auto; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; opacity: 0; pointer-events: none; transform: translate(-50%, -46%) scale(.96); transition: opacity .25s ease, transform .25s ease; }
+  .modal.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+  .modal h3 { margin: 0 0 8px; font-size: 1.1rem; }
+  .modal p { margin: 8px 0; font-size: .9rem; }
+  .m-item { color: var(--accent-2); font-weight: 700; }
+  .m-sub, .fine { color: var(--muted); font-size: .78rem; }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; border-radius: 14px; border: 0; font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; margin-top: 8px; text-align: center; }
+  .btn.primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #fff; }
+  .btn.ghost { background: var(--card-2); color: var(--text); }
+  .btn.disabled { opacity: .5; pointer-events: none; }
+  .player { position: relative; height: 140px; border-radius: 14px; background: #000; color: #fff; display: grid; place-items: center; overflow: hidden; margin: 10px 0 4px; }
+  .player .demo-tag { position: absolute; top: 8px; left: 8px; background: #ffb300; color: #1b1f3b; font-size: .65rem; font-weight: 800; padding: 2px 6px; border-radius: 5px; }
+  .player .prog { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,.2); }
+  .player .prog span { display: block; height: 100%; width: 0; background: var(--accent-2); transition: width 1s linear; }
+  .benefits { list-style: none; padding: 0; margin: 10px 0; }
+  .benefits li { padding: 6px 0; font-size: .9rem; }
+  .benefits li::before { content: "✓ "; color: var(--accent-2); font-weight: 800; }
+  .pro-active { background: rgba(34,211,166,.15); border: 1px solid var(--accent-2); color: var(--accent-2); border-radius: 12px; padding: 12px; text-align: center; font-weight: 700; }
+  .code-row { display: flex; gap: 8px; margin-top: 8px; }
+  .code-row input { flex: 1; min-width: 0; background: var(--card-2); border: 1px solid var(--border); color: var(--text); border-radius: 12px; padding: 11px 12px; font-size: 16px; outline: none; }
+  .code-row button { flex: none; background: var(--accent); color: #fff; border: 0; border-radius: 12px; padding: 0 14px; font-weight: 700; cursor: pointer; }
+  .offer { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); background: var(--card-2); border-radius: 14px; padding: 13px; margin-top: 8px; }
+  .offer .oi { font-size: 1.4rem; }
+  .offer b { display: block; font-size: .9rem; }
+  .offer small { display: block; color: var(--muted); font-size: .75rem; }
+  .offer.disabled { opacity: .55; pointer-events: none; }
+  .legal h4 { margin: 14px 0 4px; font-size: .9rem; }
+  .legal p { margin: 0; color: var(--muted); font-size: .8rem; }
+
+  .toast { position: fixed; left: 50%; bottom: 30px; transform: translate(-50%, 20px); background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 600; opacity: 0; pointer-events: none; transition: all .3s; z-index: 60; text-align: center; max-width: 90vw; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="title-row">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3a6"/></linearGradient></defs>
+        <rect width="64" height="64" rx="16" fill="url(#lg)"/>
+        <path d="M32 11l17 8v16c0 9-7 14-17 18-10-4-17-9-17-18V19z" fill="#0f1222" opacity=".28"/>
+        <path d="M21 33l8 8 15-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M50 8v8M46 12h8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <div class="brand">
+        <h1>Loot<span>Log</span></h1>
+        <div class="subtitle" data-i18n="tagline"></div>
+      </div>
+      <button class="icon-btn" id="langBtn" aria-label="Idioma / Idioma">ES</button>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">⚙️</button>
+    </div>
+    <div class="stat-row">
+      <span class="game" data-i18n="gameName"></span>
+      <span><b id="pct">0%</b> · <span id="count">0 / 0</span></span>
+    </div>
+    <div class="bar"><span id="totalBar"></span></div>
+    <div class="orbs" id="orbs">
+      <span data-i18n="orbsTitle"></span>
+      <span class="orb-list" id="orbList"></span>
+      <b id="orbCount">0/7</b>
+    </div>
+    <div class="tools">
+      <input type="search" id="search" autocomplete="off">
+      <button class="chip" id="hideDone" data-i18n="hideDone"></button>
+    </div>
+  </div>
+</header>
+
+<main id="app"></main>
+<div class="empty" id="empty" data-i18n="noResults"></div>
+
+<div class="support-card" id="supportCard">
+  <a id="supportLink" href="#" target="_blank" rel="noopener">
+    <span style="font-size:1.4rem">☕</span>
+    <span><b data-i18n="supportTitle"></b><small data-i18n="supportDesc"></small></span>
+  </a>
+</div>
+
+<!-- Banner publicitario SIMULADO -->
+<div class="ad-banner" id="adBanner" role="complementary">
+  <span class="ad-tag">AD</span>
+  <span class="ad-text" data-i18n="adText"></span>
+  <button class="ad-remove" id="adRemove" data-i18n="removeAds"></button>
+</div>
+
+<!-- Hoja de opciones -->
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="sheet" role="dialog">
+  <div class="grab"></div>
+  <h2 data-i18n="options"></h2>
+  <button class="opt" id="optPro"><span class="oi">⭐</span><span><span data-i18n="menuPro"></span><small id="proStatus"></small></span></button>
+  <button class="opt" id="optOffers"><span class="oi">🛍️</span><span><span data-i18n="menuOffers"></span><small data-i18n="menuOffersDesc"></small></span></button>
+  <button class="opt" id="optTheme"><span class="oi">🌗</span><span><span data-i18n="theme"></span><small id="themeLabel"></small></span></button>
+  <button class="opt" id="optExport"><span class="oi">📤</span><span><span data-i18n="export"></span><small data-i18n="exportDesc"></small></span></button>
+  <button class="opt" id="optImport"><span class="oi">📥</span><span><span data-i18n="import"></span><small data-i18n="importDesc"></small></span></button>
+  <button class="opt" id="optInstall" style="display:none"><span class="oi">📲</span><span><span data-i18n="install"></span><small data-i18n="installDesc"></small></span></button>
+  <a class="opt" id="optSupport" href="#" target="_blank" rel="noopener" style="display:none"><span class="oi">☕</span><span><span data-i18n="supportTitle"></span><small data-i18n="supportDesc"></small></span></a>
+  <button class="opt" id="optLegal"><span class="oi">📄</span><span><span data-i18n="menuLegal"></span><small data-i18n="menuLegalDesc"></small></span></button>
+  <button class="opt danger" id="optReset"><span class="oi">🗑️</span><span><span data-i18n="reset"></span><small data-i18n="resetDesc"></small></span></button>
+  <p class="privacy" data-i18n="privacy"></p>
+</div>
+<input type="file" id="fileInput" accept="application/json,.json" hidden>
+
+<!-- Modales -->
+<div class="modal-overlay" id="modalOverlay"></div>
+
+<div class="modal" id="modalAd" role="dialog" aria-modal="true">
+  <h3 data-i18n="adTitle"></h3>
+  <div id="adIntro">
+    <p class="m-item" id="adItemName"></p>
+    <p data-i18n="adMsg"></p>
+    <button class="btn primary" id="adWatch" data-i18n="adWatch"></button>
+    <button class="btn ghost" id="adGoPro" data-i18n="adGoPro"></button>
+    <button class="btn ghost" data-close data-i18n="cancel"></button>
+  </div>
+  <div id="adPlayer" hidden>
+    <div class="player">
+      <span class="demo-tag" data-i18n="adDemo"></span>
+      <div id="adCountdown"></div>
+      <div class="prog"><span id="adProg"></span></div>
+    </div>
+    <p class="fine" data-i18n="adWait"></p>
+    <button class="btn ghost" data-close data-i18n="cancel"></button>
+  </div>
+</div>
+
+<div class="modal" id="modalPro" role="dialog" aria-modal="true">
+  <h3 data-i18n="proTitle"></h3>
+  <p class="m-sub" data-i18n="proSub"></p>
+  <ul class="benefits" id="proBenefits"></ul>
+  <div id="proBody"></div>
+  <button class="btn ghost" data-close data-i18n="close"></button>
+</div>
+
+<div class="modal" id="modalOffers" role="dialog" aria-modal="true">
+  <h3 data-i18n="offersTitle"></h3>
+  <p class="m-sub" data-i18n="offersDesc"></p>
+  <div id="offersList"></div>
+  <p class="fine" data-i18n="disclosure"></p>
+  <button class="btn ghost" data-close data-i18n="close"></button>
+</div>
+
+<div class="modal" id="modalLegal" role="dialog" aria-modal="true">
+  <h3 data-i18n="legalTitle"></h3>
+  <div id="legalBody" class="legal"></div>
+  <button class="btn ghost" data-close data-i18n="close"></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN / CONFIGURAÇÃO  — edita solo este bloque
+   ========================================================= */
+const CONFIG = {
+  // Donación voluntaria (PayPal.me, Buy Me a Coffee, Ko-fi, Apoia.se...). Vacío = botón oculto.
+  supportUrl: "",
+
+  // Enlace de PAGO de tu versión PRO (Hotmart, Gumroad, Mercado Pago, PayPal...). Vacío = oculto.
+  proUrl: "",
+
+  // Huellas (SHA-256) de los códigos PRO. Los códigos reales están en el archivo privado
+  // codigos-pro.txt; aquí solo hay sus huellas, así que nadie puede leerlos del código.
+  proHashes: [
+    "4e24e2a4a38f1a13738bdf0bcf5f846513c590705cb57e6fb9d7109d48bae44f",
+    "041c18ea71fafd2d957d4c9c9c2945822f150c0e497489718960eb0f7f08e33d",
+    "1aad71095e280f451c5bbf8206b5011f5caf2cb1ab508495fd6469a8d7f8bb47",
+    "0fc98dfc76ae537b9ca6fa475bc4713eeb093112b84194402b8d26e168f38874",
+    "56b5ab001acfcbfde58acd893bc07906795a3b8bb844b1aba82c49cfd6830cc4",
+    "9dadf9e5cebceea0ffb23561002337900d82aa91bfd5c31c67cec4c6a258e29e",
+    "2fe4129b28c415feedde73623e07fb1ef6457c2242cbab02b16453e6bb71004f",
+    "f1dbee1eed2a7722898c4ee4456e7aae78dc264cc0383417325d2c253e605689",
+    "07812b0acc1f4899ed8d1ea1e05572d91065ff3d32b1368b6b2289b1a6298080",
+    "bd098894f3645dc6cfe674c78728fb8dfa442ff9e949201aa8cb6f7856a04429"
+  ],
+
+  // Modo de prueba para activar PRO sin pagar. Déjalo en false al publicar.
+  demoMode: false,
+
+  // Tu correo de contacto (obligatorio en la política de privacidad). EJ.: "tucorreo@gmail.com"
+  contactEmail: "",
+
+  // Tu WhatsApp con código de país y área, solo números. EJ.: "5592999999999".
+  // Tras pagar, el comprador te escribe aquí y tú le envías su código PRO.
+  whatsapp: "",
+
+  // Tu chave Pix (CPF, correo, celular o aleatoria). Muestra un botón "Copiar chave Pix" para donar.
+  pixKey: "",
+
+  // Enlaces de afiliado. Pega tu enlace en "url". Sin url = botón "Próximamente".
+  // Usa SOLO enlaces de programas en los que estés registrado (Amazon Afiliados, tiendas digitales...).
+  offers: [
+    { icon: "🎮", url: "",
+      title: ["Consigue el juego original aquí", "Consiga o jogo original aqui"],
+      desc:  ["Apoya a los creadores del juego", "Apoie os criadores do jogo"] },
+    { icon: "🔔", url: "",
+      title: ["Suscripciones en oferta", "Assinaturas em oferta"],
+      desc:  ["Ofertas en servicios y catálogos de juegos", "Ofertas em serviços e catálogos de jogos"] },
+    { icon: "📚", url: "",
+      title: ["Guías oficiales y coleccionables", "Guias oficiais e colecionáveis"],
+      desc:  ["Libros, artbooks y figuras", "Livros, artbooks e figuras"] }
+  ]
+};
+
+const AD_SECONDS = 5;   // duración del anuncio simulado
+
+/* =========================================================
+   1) TEXTOS / TEXTOS (ES · PT)
+   ========================================================= */
+const I18N = {
+  es: {
+    tagline: "Tu registro de coleccionables",
+    gameName: "Leyendas del Dragón Místico",
+    search: "Buscar ítem...",
+    hideDone: "Ocultar hechos",
+    noResults: "No se encontraron ítems 🔍",
+    complete: "✔ Completada",
+    allDone: "🎉 ¡Colección completa!",
+    orbsTitle: "🐉 Orbes",
+    orbsSummoned: "🐉 ¡Los 7 orbes reunidos! El Dragón Místico despierta",
+    options: "Opciones",
+    theme: "Cambiar tema",
+    themeNames: { auto: "Automático", light: "Claro", dark: "Oscuro" },
+    export: "Exportar progreso",
+    exportDesc: "Descarga una copia de seguridad (.json)",
+    import: "Importar progreso",
+    importDesc: "Restaura desde un archivo .json",
+    install: "Instalar app",
+    installDesc: "Añadir a la pantalla de inicio",
+    reset: "Reiniciar progreso",
+    resetDesc: "Borra todas las marcas",
+    supportTitle: "Apoyar el proyecto",
+    supportDesc: "Aporte voluntario, totalmente opcional",
+    privacy: "🔒 Tu progreso se guarda en este dispositivo. No pedimos datos personales.",
+    exported: "📤 Progreso exportado",
+    imported: "📥 Progreso importado",
+    badFile: "⚠️ Archivo no válido",
+    confirmImport: n => `Se importarán ${n} ítems marcados y se reemplazará tu progreso actual. ¿Continuar?`,
+    confirmReset: "¿Borrar todo tu progreso? Esta acción no se puede deshacer.",
+    resetDone: "Progreso reiniciado",
+    // Pistas / anuncios
+    hintAria: "Pista / ubicación secreta",
+    adTitle: "💡 Pista secreta",
+    adMsg: "Mira un video corto para desbloquear la ubicación exacta de este coleccionable.",
+    adWatch: "▶ Ver video",
+    adGoPro: "⭐ Quitar anuncios con PRO",
+    adDemo: "ANUNCIO DE PRUEBA",
+    adWait: "No cierres esta ventana hasta que termine para recibir la pista.",
+    adCountdown: s => `▶ ${s}s`,
+    hintUnlocked: "💡 ¡Pista desbloqueada!",
+    cancel: "Cancelar",
+    close: "Cerrar",
+    adText: "Espacio publicitario (demo)",
+    removeAds: "Quitar anuncios",
+    // PRO
+    menuPro: "Versión PRO",
+    proStatusOff: "Sin anuncios y todas las pistas",
+    proStatusOn: "✔ PRO activo",
+    proTitle: "⭐ Versión PRO / Apoyar al creador",
+    proSub: "Tu apoyo mantiene viva la app. Es opcional.",
+    proBenefits: ["Sin anuncios", "Todas las pistas desbloqueadas", "Apoyas el desarrollo de nuevas listas"],
+    proBuy: "Desbloquear PRO",
+    proCodePH: "Código de activación",
+    proActivate: "Activar",
+    proBadCode: "⚠️ Código no válido",
+    proActive: "✔ PRO activo. ¡Gracias por tu apoyo!",
+    proOn: "⭐ PRO activado",
+    proOff: "PRO desactivado",
+    proDemo: "🧪 Activar PRO (modo demo)",
+    proDeactivate: "Desactivar PRO (demo)",
+    proSoon: "El pago PRO estará disponible pronto.",
+    donate: "☕ Donación voluntaria",
+    // Ofertas
+    menuOffers: "Más Guías y Ofertas",
+    menuOffersDesc: "Juegos, suscripciones y coleccionables",
+    offersTitle: "🛍️ Más guías y ofertas",
+    offersDesc: "Recomendaciones que pueden interesarte.",
+    soon: "Próximamente",
+    disclosure: "Transparencia: algunos enlaces son de afiliado. Si compras a través de ellos, puedo recibir una comisión sin costo adicional para ti.",
+    proLocked: "⏳ Demasiados intentos. Espera 30 segundos.",
+    proAfterPay: "Después de pagar, envíame tu comprobante por WhatsApp y te mando tu código PRO.",
+    proWhatsapp: "Enviar comprobante",
+    proWaMsg: "Hola, pagué LootLog PRO. Te envío mi comprobante.",
+    donatePix: "💚 Copiar chave Pix (donar)",
+    pixCopied: "✔ Chave Pix copiada",
+    proNeedsHttps: "⚠️ Abre la app desde su enlace https para activar el código.",
+    menuLegal: "Términos y privacidad",
+    menuLegalDesc: "Cómo funciona la app y tus datos",
+    legalTitle: "📄 Términos y privacidad",
+    legalContact: "Contacto",
+    legal: [
+      ["Qué es LootLog", "Una lista personal para llevar el registro de coleccionables de videojuegos. Es una herramienta independiente: no está afiliada, patrocinada ni respaldada por las empresas o titulares de los videojuegos y marcas que puedan mencionarse. Todas las marcas pertenecen a sus respectivos dueños."],
+      ["Tus datos", "Tu progreso, idioma, tema y pistas desbloqueadas se guardan solo en este dispositivo (almacenamiento local del navegador). No pedimos nombre, correo ni ubicación, y no enviamos tu progreso a ningún servidor. Puedes borrarlo en cualquier momento desde Reiniciar progreso o limpiando los datos del sitio."],
+      ["Anuncios y terceros", "Los anuncios mostrados actualmente son simulados. Si se activan redes publicitarias reales, estas podrían usar cookies o identificadores; en ese caso se pedirá tu consentimiento donde la ley lo exija y se actualizará esta política."],
+      ["Versión PRO y donaciones", "PRO quita los anuncios y desbloquea todas las pistas. El pago y las donaciones se procesan en la plataforma de pago externa elegida, que tiene sus propios términos y políticas de reembolso. Las donaciones son voluntarias y no dan derechos adicionales."],
+      ["Enlaces de afiliado", "Algunos enlaces de la sección Más Guías y Ofertas son de afiliado: si compras a través de ellos, el creador puede recibir una comisión sin costo extra para ti."],
+      ["Sin garantías", "Las pistas y listas son orientativas y pueden contener errores o cambiar con las actualizaciones de cada juego. La app se ofrece tal cual, sin garantía de disponibilidad. Para una copia de seguridad, usa Exportar progreso."],
+      ["Menores", "La app no está dirigida a menores de 13 años ni recopila datos de ellos."]
+    ]
+  },
+  pt: {
+    tagline: "Seu registro de colecionáveis",
+    gameName: "Lendas do Dragão Místico",
+    search: "Buscar item...",
+    hideDone: "Ocultar feitos",
+    noResults: "Nenhum item encontrado 🔍",
+    complete: "✔ Completa",
+    allDone: "🎉 Coleção completa!",
+    orbsTitle: "🐉 Orbes",
+    orbsSummoned: "🐉 Os 7 orbes reunidos! O Dragão Místico desperta",
+    options: "Opções",
+    theme: "Mudar tema",
+    themeNames: { auto: "Automático", light: "Claro", dark: "Escuro" },
+    export: "Exportar progresso",
+    exportDesc: "Baixa um backup (.json)",
+    import: "Importar progresso",
+    importDesc: "Restaura a partir de um arquivo .json",
+    install: "Instalar app",
+    installDesc: "Adicionar à tela inicial",
+    reset: "Reiniciar progresso",
+    resetDesc: "Apaga todas as marcações",
+    supportTitle: "Apoiar o projeto",
+    supportDesc: "Contribuição voluntária, totalmente opcional",
+    privacy: "🔒 Seu progresso fica salvo neste dispositivo. Não pedimos dados pessoais.",
+    exported: "📤 Progresso exportado",
+    imported: "📥 Progresso importado",
+    badFile: "⚠️ Arquivo inválido",
+    confirmImport: n => `Serão importados ${n} itens marcados e seu progresso atual será substituído. Continuar?`,
+    confirmReset: "Apagar todo o seu progresso? Esta ação não pode ser desfeita.",
+    resetDone: "Progresso reiniciado",
+    hintAria: "Dica / localização secreta",
+    adTitle: "💡 Dica secreta",
+    adMsg: "Assista a um vídeo curto para desbloquear a localização exata deste colecionável.",
+    adWatch: "▶ Assistir vídeo",
+    adGoPro: "⭐ Remover anúncios com PRO",
+    adDemo: "ANÚNCIO DE TESTE",
+    adWait: "Não feche esta janela até terminar para receber a dica.",
+    adCountdown: s => `▶ ${s}s`,
+    hintUnlocked: "💡 Dica desbloqueada!",
+    cancel: "Cancelar",
+    close: "Fechar",
+    adText: "Espaço publicitário (demo)",
+    removeAds: "Remover anúncios",
+    menuPro: "Versão PRO",
+    proStatusOff: "Sem anúncios e todas as dicas",
+    proStatusOn: "✔ PRO ativo",
+    proTitle: "⭐ Versão PRO / Apoiar o criador",
+    proSub: "Seu apoio mantém o app vivo. É opcional.",
+    proBenefits: ["Sem anúncios", "Todas as dicas desbloqueadas", "Você apoia o desenvolvimento de novas listas"],
+    proBuy: "Desbloquear PRO",
+    proCodePH: "Código de ativação",
+    proActivate: "Ativar",
+    proBadCode: "⚠️ Código inválido",
+    proActive: "✔ PRO ativo. Obrigado pelo apoio!",
+    proOn: "⭐ PRO ativado",
+    proOff: "PRO desativado",
+    proDemo: "🧪 Ativar PRO (modo demo)",
+    proDeactivate: "Desativar PRO (demo)",
+    proSoon: "O pagamento PRO estará disponível em breve.",
+    donate: "☕ Doação voluntária",
+    menuOffers: "Mais Guias e Ofertas",
+    menuOffersDesc: "Jogos, assinaturas e colecionáveis",
+    offersTitle: "🛍️ Mais guias e ofertas",
+    offersDesc: "Recomendações que podem te interessar.",
+    soon: "Em breve",
+    disclosure: "Transparência: alguns links são de afiliado. Se você comprar por eles, posso receber uma comissão sem custo adicional para você.",
+    proLocked: "⏳ Muitas tentativas. Aguarde 30 segundos.",
+    proAfterPay: "Depois de pagar, envie seu comprovante por WhatsApp e eu te mando seu código PRO.",
+    proWhatsapp: "Enviar comprovante",
+    proWaMsg: "Olá, paguei o LootLog PRO. Estou enviando meu comprovante.",
+    donatePix: "💚 Copiar chave Pix (doar)",
+    pixCopied: "✔ Chave Pix copiada",
+    proNeedsHttps: "⚠️ Abra o app pelo link https para ativar o código.",
+    menuLegal: "Termos e privacidade",
+    menuLegalDesc: "Como o app funciona e seus dados",
+    legalTitle: "📄 Termos e privacidade",
+    legalContact: "Contato",
+    legal: [
+      ["O que é o LootLog", "Uma lista pessoal para registrar colecionáveis de videogames. É uma ferramenta independente: não é afiliada, patrocinada nem endossada pelas empresas ou titulares dos jogos e marcas que possam ser mencionados. Todas as marcas pertencem aos seus respectivos donos."],
+      ["Seus dados", "Seu progresso, idioma, tema e dicas desbloqueadas ficam salvos apenas neste dispositivo (armazenamento local do navegador). Não pedimos nome, e-mail nem localização, e não enviamos seu progresso a nenhum servidor. Você pode apagá-lo a qualquer momento em Reiniciar progresso ou limpando os dados do site."],
+      ["Anúncios e terceiros", "Os anúncios exibidos atualmente são simulados. Se redes de anúncios reais forem ativadas, elas poderão usar cookies ou identificadores; nesse caso, seu consentimento será solicitado onde a lei exigir e esta política será atualizada."],
+      ["Versão PRO e doações", "O PRO remove os anúncios e desbloqueia todas as dicas. O pagamento e as doações são processados na plataforma de pagamento externa escolhida, que tem seus próprios termos e políticas de reembolso. As doações são voluntárias e não dão direitos adicionais."],
+      ["Links de afiliado", "Alguns links da seção Mais Guias e Ofertas são de afiliado: se você comprar por eles, o criador pode receber uma comissão sem custo extra para você."],
+      ["Sem garantias", "As dicas e listas são orientativas e podem conter erros ou mudar com as atualizações de cada jogo. O app é oferecido como está, sem garantia de disponibilidade. Para ter um backup, use Exportar progresso."],
+      ["Menores", "O app não é direcionado a menores de 13 anos nem coleta dados deles."]
+    ]
+  }
+};
+
+/* =========================================================
+   2) DATOS / DADOS — cada texto tiene [español, português]
+      Cada ítem necesita un id único (no lo cambies después).
+      note = nota visible. hint = pista que se desbloquea con
+      anuncio o PRO. ¡Las pistas de abajo son TEXTO DE EJEMPLO,
+      reemplázalas por las tuyas!
+   ========================================================= */
+const DATA = [
+  { id: "reliquias", icon: "🔮", name: ["Reliquias del Dragón Místico", "Relíquias do Dragão Místico"], items: [
+    { id: "r1", name: ["Orbe Estelar Primario (I)", "Orbe Estelar Primário (I)"], note: ["★ 1 estrella", "★ 1 estrela"],
+      hint: ["Ejemplo: busca en un lugar elevado al amanecer.", "Exemplo: procure em um lugar elevado ao amanhecer."] },
+    { id: "r2", name: ["Orbe Estelar Secundario (II)", "Orbe Estelar Secundário (II)"], note: ["★★ 2 estrellas", "★★ 2 estrelas"],
+      hint: ["Ejemplo: está cerca de agua corriente.", "Exemplo: fica perto de água corrente."] },
+    { id: "r3", name: ["Orbe Estelar Terciario (III)", "Orbe Estelar Terciário (III)"], note: ["★★★ 3 estrellas", "★★★ 3 estrelas"],
+      hint: ["Ejemplo: revisa una zona rocosa y escondida.", "Exemplo: confira uma área rochosa e escondida."] },
+    { id: "r4", name: ["Orbe Estelar Central (IV)", "Orbe Estelar Central (IV)"], note: ["★★★★ 4 estrellas", "★★★★ 4 estrelas"],
+      hint: ["Ejemplo: el centro del mapa guarda esta reliquia.", "Exemplo: o centro do mapa guarda esta relíquia."] },
+    { id: "r5", name: ["Orbe Estelar Quintuple (V)", "Orbe Estelar Quíntuplo (V)"], note: ["★★★★★ 5 estrellas", "★★★★★ 5 estrelas"],
+      hint: ["Ejemplo: solo aparece tras completar un desafío.", "Exemplo: só aparece após completar um desafio."] },
+    { id: "r6", name: ["Orbe Estelar Sextuple (VI)", "Orbe Estelar Séxtuplo (VI)"], note: ["★★★★★★ 6 estrellas", "★★★★★★ 6 estrelas"],
+      hint: ["Ejemplo: explora una zona oculta de noche.", "Exemplo: explore uma área oculta à noite."] },
+    { id: "r7", name: ["Orbe Estelar Supremo (VII)", "Orbe Estelar Supremo (VII)"], note: ["★★★★★★★ 7 estrellas", "★★★★★★★ 7 estrelas"],
+      hint: ["Ejemplo: el último orbe espera al final del recorrido.", "Exemplo: o último orbe espera no fim do percurso."] }
+  ]},
+  { id: "talismanes", icon: "⚡", name: ["Talismanes de Poder Guerreros", "Talismãs de Poder Guerreiros"], items: [
+    { id: "t1", name: ["Esencia del Maestro de Marciales", "Essência do Mestre das Artes Marciais"],
+      hint: ["Ejemplo: recompensa de un entrenamiento avanzado.", "Exemplo: recompensa de um treinamento avançado."] },
+    { id: "t2", name: ["Lastres de Entrenamiento Pesado", "Pesos de Treinamento Pesado"],
+      hint: ["Ejemplo: se encuentra en una zona de práctica.", "Exemplo: encontra-se em uma área de prática."] },
+    { id: "t3", name: ["Sello de Concentración Espiritual", "Selo de Concentração Espiritual"],
+      hint: ["Ejemplo: aparece en un lugar tranquilo y silencioso.", "Exemplo: aparece em um lugar calmo e silencioso."] },
+    { id: "t4", name: ["Bendición del Sanador Astral", "Bênção do Curandeiro Astral"],
+      hint: ["Ejemplo: habla con un personaje sanador.", "Exemplo: converse com um personagem curandeiro."] },
+    { id: "t5", name: ["Anillo de Gravedad Reducida", "Anel de Gravidade Reduzida"],
+      hint: ["Ejemplo: escondido en una plataforma alta.", "Exemplo: escondido em uma plataforma alta."] },
+    { id: "t6", name: ["Núcleo de Combate Titánico", "Núcleo de Combate Titânico"],
+      hint: ["Ejemplo: lo suelta un enemigo poderoso.", "Exemplo: é largado por um inimigo poderoso."] },
+    { id: "t7", name: ["Barrera de Jade Defensiva", "Barreira de Jade Defensiva"],
+      hint: ["Ejemplo: revisa un cofre verde cerca de una muralla.", "Exemplo: confira um baú verde perto de uma muralha."] },
+    { id: "t8", name: ["Escudo del Guardián Celestial", "Escudo do Guardião Celestial"],
+      hint: ["Ejemplo: custodiado por un jefe opcional.", "Exemplo: guardado por um chefe opcional."] }
+  ]},
+  { id: "arena", icon: "🏆", name: ["Logros de la Arena Suprema", "Conquistas da Arena Suprema"], items: [
+    { id: "a1", name: ["Campeón del Torneo Marcial Mundial", "Campeão do Torneio Marcial Mundial"],
+      hint: ["Ejemplo: gana todas las rondas sin perder.", "Exemplo: vença todas as rodadas sem perder."] },
+    { id: "a2", name: ["Superviviente del Desafío de los Bio-Androides", "Sobrevivente do Desafio dos Bio-Andróides"],
+      hint: ["Ejemplo: resiste hasta el final del desafío.", "Exemplo: resista até o fim do desafio."] },
+    { id: "a3", name: ["Leyenda del Coliseo Astral", "Lenda do Coliseu Astral"],
+      hint: ["Ejemplo: se logra al completar todo lo anterior.", "Exemplo: conquista-se ao completar todo o resto."] }
+  ]},
+  { id: "atavios", icon: "🥋", name: ["Atavíos de Combate", "Trajes de Combate"], items: [
+    { id: "v1", name: ["Traje Tradicional de Artes Marciales", "Traje Tradicional de Artes Marciais"],
+      hint: ["Ejemplo: disponible desde el inicio en un vestidor.", "Exemplo: disponível desde o início em um vestiário."] },
+    { id: "v2", name: ["Armadura de Combate Saiyajin de Primera Generación", "Armadura de Combate Saiyajin de Primeira Geração"],
+      hint: ["Ejemplo: recompensa por derrotar a un jefe.", "Exemplo: recompensa por derrotar um chefe."] },
+    { id: "v3", name: ["Capa de Entrenamiento Espiritual", "Capa de Treinamento Espiritual"],
+      hint: ["Ejemplo: se obtiene al terminar una misión secundaria.", "Exemplo: obtém-se ao terminar uma missão secundária."] },
+    { id: "v4", name: ["Traje de Viajero del Tiempo", "Traje de Viajante do Tempo"],
+      hint: ["Ejemplo: solo aparece en una zona especial.", "Exemplo: só aparece em uma área especial."] }
+  ]}
+];
+
+/* =========================================================
+   3) ESTADO + localStorage
+      - lootlog-v1 : progreso, pistas desbloqueadas, idioma, tema
+      - isProUser  : "true" / "false"
+   ========================================================= */
+const STORAGE_KEY = "lootlog-v1";
+function loadState() {
+  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+  return {};
+}
+function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+const state = loadState();
+state.checked ||= {}; state.open ||= {}; state.hints ||= {};
+state.theme ||= "auto"; state.hideDone ||= false;
+if (!state.lang) state.lang = (navigator.language || "es").toLowerCase().startsWith("pt") ? "pt" : "es";
+
+/* PRO: isProUser = "true" solo cuenta si hay además un token válido (huella de un código real).
+   Así, editar isProUser a mano desde las herramientas del navegador ya no basta. */
+function validToken(t) { return (t === "demo" && CONFIG.demoMode) || CONFIG.proHashes.includes(t); }
+function isPro() {
+  try { return localStorage.getItem("isProUser") === "true" && validToken(localStorage.getItem("proToken")); }
+  catch (e) { return false; }
+}
+function writePro(v, token) {
+  try {
+    localStorage.setItem("isProUser", v ? "true" : "false");
+    if (v) localStorage.setItem("proToken", token || ""); else localStorage.removeItem("proToken");
+  } catch (e) {}
+}
+if (!isPro()) writePro(false);   // limpia cualquier valor manipulado
+
+async function sha256Hex(s) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+let badTries = 0, lockUntil = 0;
+
+const $ = id => document.getElementById(id);
+const LI = () => (state.lang === "pt" ? 1 : 0);
+const T = () => I18N[state.lang];
+const hasHint = id => isPro() || !!state.hints[id];
+const findItem = id => DATA.flatMap(c => c.items).find(it => it.id === id);
+
+/* =========================================================
+   4) IDIOMA
+   ========================================================= */
+function applyLang() {
+  document.documentElement.lang = state.lang === "pt" ? "pt-BR" : "es";
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = T()[el.dataset.i18n]; });
+  $("search").placeholder = T().search;
+  $("langBtn").textContent = state.lang.toUpperCase();
+  document.title = "LootLog · " + T().tagline;
+  $("themeLabel").textContent = T().themeNames[state.theme];
+  updateProStatus();
+}
+$("langBtn").addEventListener("click", () => {
+  state.lang = state.lang === "es" ? "pt" : "es";
+  saveState(); applyLang(); render();
+});
+
+/* =========================================================
+   5) TEMA
+   ========================================================= */
+const THEMES = ["auto", "light", "dark"];
+const mq = window.matchMedia("(prefers-color-scheme: light)");
+function applyTheme() {
+  const eff = state.theme === "auto" ? (mq.matches ? "light" : "dark") : state.theme;
+  document.documentElement.dataset.theme = eff;
+  document.querySelector('meta[name="theme-color"]').content = eff === "light" ? "#f3f4fb" : "#0f1222";
+  $("themeLabel").textContent = T().themeNames[state.theme];
+}
+mq.addEventListener?.("change", applyTheme);
+
+/* =========================================================
+   6) RENDER
+   ========================================================= */
+const app = $("app");
+
+function render() {
+  const i = LI();
+  const keepOpen = new Set([...app.querySelectorAll(".item.hint-open")].map(r => r.dataset.id));
+  app.innerHTML = "";
+  DATA.forEach(cat => {
+    const section = document.createElement("section");
+    section.className = "category";
+    section.dataset.cat = cat.id;
+    if (state.open[cat.id]) section.classList.add("open");
+    section.innerHTML = `
+      <button class="cat-head" aria-expanded="${!!state.open[cat.id]}">
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-info">
+          <div class="cat-name">${cat.name[i]}</div>
+          <div class="cat-count"></div>
+          <div class="mini-bar"><span></span></div>
+        </span>
+        <span class="chev">›</span>
+      </button>
+      <div class="items"></div>`;
+
+    const list = section.querySelector(".items");
+    cat.items.forEach(item => {
+      const row = document.createElement("label");
+      row.className = "item";
+      row.dataset.id = item.id;
+      row.dataset.name = (item.name.join(" ") + " " + (item.note ? item.note.join(" ") : "")).toLowerCase();
+      row.innerHTML = `
+        <input type="checkbox">
+        <span class="box">✓</span>
+        <span class="label">${item.name[i]}${item.note ? `<small>${item.note[i]}</small>` : ""}<small class="hint"></small></span>`;
+      const input = row.querySelector("input");
+      input.checked = !!state.checked[item.id];
+      row.classList.toggle("checked", input.checked);
+      input.addEventListener("change", () => {
+        if (input.checked) state.checked[item.id] = true; else delete state.checked[item.id];
+        row.classList.toggle("checked", input.checked);
+        if (navigator.vibrate) navigator.vibrate(15);
+        saveState(); updateProgress(); applyFilters();
+      });
+
+      // Botón de pista
+      if (item.hint) {
+        const unlocked = hasHint(item.id);
+        row.querySelector(".hint").textContent = item.hint[i];
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "hint-btn" + (unlocked ? " unlocked" : "");
+        btn.textContent = unlocked ? "💡" : "🔒";
+        btn.setAttribute("aria-label", T().hintAria);
+        btn.addEventListener("click", e => {
+          e.preventDefault(); e.stopPropagation();
+          if (hasHint(item.id)) row.classList.toggle("hint-open");
+          else openAdModal(item.id);
+        });
+        row.appendChild(btn);
+        if (keepOpen.has(item.id) && unlocked) row.classList.add("hint-open");
+      }
+      list.appendChild(row);
+    });
+
+    section.querySelector(".cat-head").addEventListener("click", () => {
+      const open = section.classList.toggle("open");
+      state.open[cat.id] = open;
+      section.querySelector(".cat-head").setAttribute("aria-expanded", open);
+      saveState();
+    });
+    app.appendChild(section);
+  });
+  lastComplete = isComplete();
+  { const o = orbsState(); lastOrbsFull = o.n > 0 && o.on === o.n; }
+  updateProgress(); applyFilters();
+}
+
+/* =========================================================
+   7) PROGRESO
+   ========================================================= */
+function isComplete() {
+  const all = DATA.flatMap(c => c.items);
+  return all.length > 0 && all.every(it => state.checked[it.id]);
+}
+let lastComplete = false;
+
+const ORB_CAT = "reliquias";
+let lastOrbsFull = false;
+function orbsState() {
+  const cat = DATA.find(c => c.id === ORB_CAT);
+  if (!cat) return { on: 0, n: 0 };
+  return { on: cat.items.filter(it => state.checked[it.id]).length, n: cat.items.length };
+}
+function updateOrbs() {
+  const box = $("orbs");
+  const { on, n } = orbsState();
+  if (!n) { box.style.display = "none"; return; }
+  const list = $("orbList");
+  list.innerHTML = "";
+  for (let k = 0; k < n; k++) {
+    const d = document.createElement("span");
+    d.className = "orb" + (k < on ? " on" : "");
+    list.appendChild(d);
+  }
+  $("orbCount").textContent = `${on}/${n}`;
+  const full = on === n;
+  box.classList.toggle("full", full);
+  if (full && !lastOrbsFull) {
+    showToast(T().orbsSummoned);
+    if (navigator.vibrate) navigator.vibrate([60, 40, 120]);
+  }
+  lastOrbsFull = full;
+}
+
+function updateProgress() {
+  let total = 0, done = 0;
+  DATA.forEach(cat => {
+    const n = cat.items.length;
+    const d = cat.items.filter(it => state.checked[it.id]).length;
+    total += n; done += d;
+    const sec = app.querySelector(`[data-cat="${cat.id}"]`);
+    if (!sec) return;
+    sec.querySelector(".cat-count").textContent = d === n ? `${T().complete} (${n}/${n})` : `${d} / ${n}`;
+    sec.querySelector(".mini-bar span").style.width = (n ? d / n * 100 : 0) + "%";
+    sec.classList.toggle("done", d === n);
+  });
+  const pct = total ? Math.round(done / total * 100) : 0;
+  $("pct").textContent = pct + "%";
+  $("count").textContent = `${done} / ${total}`;
+  $("totalBar").style.width = pct + "%";
+  updateOrbs();
+  const complete = total > 0 && done === total;
+  if (complete && !lastComplete) showToast(T().allDone);
+  lastComplete = complete;
+}
+
+/* =========================================================
+   8) BÚSQUEDA Y FILTRO
+   ========================================================= */
+const searchEl = $("search");
+const hideBtn = $("hideDone");
+function applyFilters() {
+  const q = searchEl.value.trim().toLowerCase();
+  let visible = 0;
+  app.querySelectorAll(".category").forEach(sec => {
+    let n = 0;
+    sec.querySelectorAll(".item").forEach(row => {
+      const show = (!q || row.dataset.name.includes(q)) && !(state.hideDone && row.classList.contains("checked"));
+      row.classList.toggle("hidden", !show);
+      if (show) n++;
+    });
+    sec.style.display = n ? "" : "none";
+    if (q && n) sec.classList.add("open");
+    else if (!q) sec.classList.toggle("open", !!state.open[sec.dataset.cat]);
+    visible += n;
+  });
+  $("empty").style.display = visible ? "none" : "block";
+  hideBtn.classList.toggle("active", !!state.hideDone);
+}
+searchEl.addEventListener("input", applyFilters);
+hideBtn.addEventListener("click", () => { state.hideDone = !state.hideDone; saveState(); applyFilters(); });
+
+/* =========================================================
+   9) MODALES (abrir/cerrar con transición suave)
+   ========================================================= */
+let openModalId = null;
+function openModal(id) {
+  if (openModalId && openModalId !== id) closeModal();
+  openModalId = id;
+  $(id).classList.add("show");
+  $("modalOverlay").classList.add("show");
+}
+function closeModal() {
+  if (!openModalId) return;
+  if (openModalId === "modalAd") stopAd();       // cerrar a medias = sin recompensa
+  $(openModalId).classList.remove("show");
+  $("modalOverlay").classList.remove("show");
+  openModalId = null;
+}
+$("modalOverlay").addEventListener("click", closeModal);
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+document.addEventListener("keydown", e => { if (e.key === "Escape") { closeModal(); closeSheet(); } });
+
+/* =========================================================
+   10) PISTAS CON ANUNCIO RECOMPENSADO (SIMULADO)
+   ========================================================= */
+let adItem = null, adTimer = null;
+
+function openAdModal(itemId) {
+  adItem = itemId;
+  const it = findItem(itemId);
+  $("adItemName").textContent = it ? it.name[LI()] : "";
+  $("adIntro").hidden = false;
+  $("adPlayer").hidden = true;
+  openModal("modalAd");
+}
+$("adWatch").addEventListener("click", () => showRewardedAd(adItem));
+$("adGoPro").addEventListener("click", () => { closeModal(); openProModal(); });
+
+/* showRewardedAd(itemId): SIMULADA.
+   Para usar anuncios reales, sustituye el temporizador por el SDK de tu red
+   publicitaria (en web: Google Ad Manager / AdSense for Games, u otra red que
+   ofrezca anuncios recompensados) y llama a onRewarded(itemId) SOLO en su
+   callback de "recompensa concedida". */
+function showRewardedAd(itemId) {
+  stopAd();
+  adItem = itemId;
+  $("adIntro").hidden = true;
+  $("adPlayer").hidden = false;
+  let left = AD_SECONDS;
+  $("adProg").style.transition = "none";
+  $("adProg").style.width = "0%";
+  $("adCountdown").textContent = T().adCountdown(left);
+  void $("adProg").offsetWidth;
+  $("adProg").style.transition = "";
+  adTimer = setInterval(() => {
+    left--;
+    $("adProg").style.width = ((AD_SECONDS - left) / AD_SECONDS * 100) + "%";
+    $("adCountdown").textContent = T().adCountdown(Math.max(left, 0));
+    if (left <= 0) { stopAd(); onRewarded(itemId); }
+  }, 1000);
+  requestAnimationFrame(() => { $("adProg").style.width = (1 / AD_SECONDS * 100) + "%"; });
+}
+function stopAd() { if (adTimer) { clearInterval(adTimer); adTimer = null; } }
+
+function onRewarded(itemId) {
+  unlockHint(itemId);
+  closeModal();
+}
+function unlockHint(itemId) {
+  state.hints[itemId] = true;
+  saveState();
+  render();
+  const row = app.querySelector(`.item[data-id="${itemId}"]`);
+  if (row) { row.classList.add("hint-open"); row.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  showToast(T().hintUnlocked);
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+/* =========================================================
+   11) PRO (sin anuncios + todas las pistas)
+   ========================================================= */
+function applyPro() {
+  const pro = isPro();
+  $("adBanner").style.display = pro ? "none" : "flex";
+  document.body.classList.toggle("has-ad", !pro);
+  updateProStatus();
+}
+function updateProStatus() { $("proStatus").textContent = isPro() ? T().proStatusOn : T().proStatusOff; }
+function setPro(v, token) {
+  writePro(v, token);
+  applyPro();
+  render();
+  showToast(v ? T().proOn : T().proOff);
+}
+function mk(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text) e.textContent = text;
+  return e;
+}
+function mkLink(cls, text, url) {
+  const a = mk("a", cls, text);
+  a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+  return a;
+}
+function renderProModal() {
+  const t = T();
+  $("proBenefits").innerHTML = "";
+  t.proBenefits.forEach(b => $("proBenefits").appendChild(mk("li", "", b)));
+  const body = $("proBody");
+  body.innerHTML = "";
+
+  if (isPro()) {
+    body.appendChild(mk("div", "pro-active", t.proActive));
+    if (CONFIG.demoMode) {
+      const b = mk("button", "btn ghost", t.proDeactivate); b.type = "button";
+      b.addEventListener("click", () => { setPro(false); renderProModal(); });
+      body.appendChild(b);
+    }
+  } else {
+    if (CONFIG.proUrl) body.appendChild(mkLink("btn primary", "⭐ " + t.proBuy, CONFIG.proUrl));
+    const wa = (CONFIG.whatsapp || "").replace(/\D/g, "");
+    if (CONFIG.proUrl && wa.length >= 10) {
+      body.appendChild(mk("p", "fine", t.proAfterPay));
+      body.appendChild(mkLink("btn ghost", "💬 " + t.proWhatsapp, "https://wa.me/" + wa + "?text=" + encodeURIComponent(t.proWaMsg)));
+    }
+
+    if (CONFIG.proHashes.length) {
+      const row = mk("div", "code-row");
+      const inp = mk("input"); inp.type = "text"; inp.placeholder = t.proCodePH;
+      inp.autocomplete = "off"; inp.autocapitalize = "characters"; inp.maxLength = 40;
+      const go = mk("button", "", t.proActivate); go.type = "button";
+      go.addEventListener("click", async () => {
+        if (Date.now() < lockUntil) { showToast(t.proLocked); return; }
+        const code = inp.value.trim().toUpperCase();
+        if (!code) return;
+        try {
+          const h = await sha256Hex("lootlog:" + code);
+          if (CONFIG.proHashes.includes(h)) { badTries = 0; setPro(true, h); renderProModal(); return; }
+        } catch (e) { showToast(t.proNeedsHttps); return; }
+        if (++badTries >= 5) { lockUntil = Date.now() + 30000; badTries = 0; }
+        showToast(t.proBadCode);
+      });
+      row.append(inp, go);
+      body.appendChild(row);
+    }
+
+    if (CONFIG.demoMode) {
+      const d = mk("button", "btn ghost", t.proDemo); d.type = "button";
+      d.addEventListener("click", () => { setPro(true, "demo"); renderProModal(); });
+      body.appendChild(d);
+    }
+    if (!CONFIG.proUrl && !CONFIG.demoMode) body.appendChild(mk("p", "fine", t.proSoon));
+  }
+  if (CONFIG.supportUrl) body.appendChild(mkLink("btn ghost", t.donate, CONFIG.supportUrl));
+  if (CONFIG.pixKey) {
+    const px = mk("button", "btn ghost", t.donatePix); px.type = "button";
+    px.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(CONFIG.pixKey); showToast(t.pixCopied); }
+      catch (e) { showToast(CONFIG.pixKey); }
+    });
+    body.appendChild(px);
+  }
+  const lg = mk("button", "btn ghost", t.menuLegal); lg.type = "button";
+  lg.addEventListener("click", openLegalModal);
+  body.appendChild(lg);
+}
+
+/* Textos legales (plantilla base). Se muestran en un modal y se construyen con textContent. */
+function openLegalModal() {
+  const box = $("legalBody");
+  box.innerHTML = "";
+  T().legal.forEach(([title, text]) => {
+    box.appendChild(mk("h4", "", title));
+    box.appendChild(mk("p", "", text));
+  });
+  const contact = CONFIG.contactEmail ? CONFIG.contactEmail : "—";
+  box.appendChild(mk("h4", "", T().legalContact));
+  box.appendChild(mk("p", "", contact));
+  openModal("modalLegal");
+}
+function openProModal() { renderProModal(); openModal("modalPro"); }
+$("adRemove").addEventListener("click", openProModal);
+
+/* =========================================================
+   12) MÁS GUÍAS Y OFERTAS (afiliados)
+   ========================================================= */
+function renderOffers() {
+  const i = LI(), list = $("offersList");
+  list.innerHTML = "";
+  CONFIG.offers.forEach(o => {
+    const inner = `<span class="oi">${o.icon}</span><span><b></b><small></small></span>`;
+    let el;
+    if (o.url) {
+      el = mkLink("offer", "", o.url);
+      el.rel = "sponsored noopener noreferrer";
+    } else {
+      el = mk("div", "offer disabled");
+    }
+    el.innerHTML = inner;
+    el.querySelector("b").textContent = o.title[i];
+    el.querySelector("small").textContent = o.url ? o.desc[i] : T().soon;
+    list.appendChild(el);
+  });
+}
+function openOffersModal() { renderOffers(); openModal("modalOffers"); }
+
+/* =========================================================
+   13) PANEL DE OPCIONES
+   ========================================================= */
+const sheet = $("sheet");
+const overlay = $("overlay");
+function openSheet() { sheet.classList.add("show"); overlay.classList.add("show"); }
+function closeSheet() { sheet.classList.remove("show"); overlay.classList.remove("show"); }
+$("menuBtn").addEventListener("click", openSheet);
+overlay.addEventListener("click", closeSheet);
+
+$("optPro").addEventListener("click", () => { closeSheet(); openProModal(); });
+$("optOffers").addEventListener("click", () => { closeSheet(); openOffersModal(); });
+$("optLegal").addEventListener("click", () => { closeSheet(); openLegalModal(); });
+
+$("optTheme").addEventListener("click", () => {
+  state.theme = THEMES[(THEMES.indexOf(state.theme) + 1) % THEMES.length];
+  saveState(); applyTheme();
+});
+
+$("optExport").addEventListener("click", () => {
+  const payload = { app: "LootLog", version: 2, exported: new Date().toISOString(),
+    checked: Object.keys(state.checked), hints: Object.keys(state.hints) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "lootlog-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  closeSheet(); showToast(T().exported);
+});
+
+const fileInput = $("fileInput");
+$("optImport").addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  if (file.size > 100000) { showToast(T().badFile); fileInput.value = ""; return; }   // límite de tamaño
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.checked)) throw new Error("format");
+      const valid = new Set(DATA.flatMap(c => c.items.map(it => it.id)));
+      const ids = data.checked.filter(id => valid.has(id));
+      if (!confirm(T().confirmImport(ids.length))) return;
+      state.checked = {}; ids.forEach(id => state.checked[id] = true);
+      if (Array.isArray(data.hints)) {
+        state.hints = {}; data.hints.filter(id => valid.has(id)).forEach(id => state.hints[id] = true);
+      }
+      saveState(); render(); closeSheet(); showToast(T().imported);
+    } catch (e) { showToast(T().badFile); }
+  };
+  reader.readAsText(file);
+  fileInput.value = "";
+});
+
+$("optReset").addEventListener("click", () => {
+  if (confirm(T().confirmReset)) {
+    state.checked = {}; saveState(); render(); closeSheet(); showToast(T().resetDone);
+  }
+});
+
+/* Apoyo voluntario: solo se muestra si configuraste supportUrl */
+(function setupSupport() {
+  if (!CONFIG.supportUrl) return;
+  $("supportCard").style.display = "block";
+  $("supportLink").href = CONFIG.supportUrl;
+  const o = $("optSupport");
+  o.style.display = "flex"; o.href = CONFIG.supportUrl;
+})();
+
+/* =========================================================
+   14) TOAST
+   ========================================================= */
+let toastTimer;
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+/* =========================================================
+   15) PWA (requiere https:// o localhost)
+   ========================================================= */
+(function setupPWA() {
+  const icon = "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3a6"/></linearGradient></defs><rect width="64" height="64" fill="url(#g)"/><path d="M32 11l17 8v16c0 9-7 14-17 18-10-4-17-9-17-18V19z" fill="#0f1222" opacity=".28"/><path d="M21 33l8 8 15-17" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+  const manifest = {
+    name: "LootLog", short_name: "LootLog",
+    start_url: location.href.split("#")[0], display: "standalone",
+    background_color: "#0f1222", theme_color: "#0f1222",
+    icons: [{ src: icon, sizes: "any", type: "image/svg+xml", purpose: "any" }]
+  };
+  const link = document.createElement("link");
+  link.rel = "manifest";
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
+  document.head.appendChild(link);
+  const ai = document.createElement("link");
+  ai.rel = "apple-touch-icon"; ai.href = icon; document.head.appendChild(ai);
+
+  let deferred;
+  const installBtn = $("optInstall");
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; installBtn.style.display = "flex"; });
+  installBtn.addEventListener("click", async () => {
+    if (!deferred) return;
+    deferred.prompt(); await deferred.userChoice;
+    deferred = null; installBtn.style.display = "none"; closeSheet();
+  });
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+})();
+
+applyLang();
+applyTheme();
+applyPro();
+render();
+</script>
+</body>
+</html>
